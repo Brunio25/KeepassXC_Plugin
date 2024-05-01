@@ -1,33 +1,26 @@
 {
   "required_api_version": "2",
   "name": "KeepassXC",
-  "description": "An extension to open jetbrains projects",
+  "description": "An extension to explore KeepassXC databases",
   "developer_name": "Brunio25",
-  "icon": "images/jetbrains.svg",
+  "icon": "images/keepass_logo.png",
   "options": {
-    "query_debounce": 0.05
+    "query_debounce": 0.00
   },
   "preferences": [
     {
       "id": "keepassxc",
       "type": "keyword",
       "name": "KeepassXC",
-      "description": "Open JetBrains projects",
+      "description": "Explore KeepassXC database",
       "default_value": "kp"
-    },
-    {
-      "id": "binaries",
-      "type": "input",
-      "name": "Binaries path",
-      "description": "Path to the toolbox generated binaries for the IDEs",
-      "default_value": "~/.local/share/JetBrains/Toolbox/scripts"
     },
     {
       "id": "item_limit",
       "type": "input",
       "name": "Item limit",
       "description": "Max number of items to display",
-      "default_value": 10
+      "default_value": 15
     }
   ]
 }

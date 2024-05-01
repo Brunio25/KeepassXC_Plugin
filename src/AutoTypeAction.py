@@ -3,16 +3,21 @@ from enum import Enum
 import pyautogui
 
 from ulauncher.api.shared.action.BaseAction import BaseAction
+from ulauncher.api.shared.action.RunScriptAction import RunScriptAction
 
 
 class AutoTypeInputType(Enum):
-    TEXT = 0
-    KEY_PRESS = 1
+    TEXT = "type --delay 100"
+    KEY_PRESS = "key"
 
+
+# class KeyPress(Enum):
+#     TAB = "tab"
+#     ENTER = "enter"
 
 class KeyPress(Enum):
-    TAB = "tab"
-    ENTER = "enter"
+    TAB = "Tab"
+    ENTER = "Return"
 
 
 @dataclass
@@ -21,7 +26,7 @@ class AutoTypeInputEntry:
     input_to_type: str
 
 
-class AutoTypeInput:
+class AutoTypeActionBuilder:
     def __init__(self):
         self.__inputs: [AutoTypeInputEntry] = []
 
@@ -52,7 +57,7 @@ class AutoTypeAction(BaseAction):
     """
     @staticmethod
     def builder():
-        return AutoTypeInput()
+        return AutoTypeActionBuilder()
 
     def __init__(self, auto_type_input):
         self.auto_type_input = auto_type_input
@@ -67,3 +72,31 @@ class AutoTypeAction(BaseAction):
                 continue
 
             pyautogui.typewrite(entry.input_to_type)
+
+
+class AutoTypeActionStandInBuilder:
+    def __init__(self):
+        self.bin = "xdotool"
+        self.window_minimize = "getactivewindow windowminimize --sync"
+        self.commands: [AutoTypeInputEntry] = []
+
+    def type(self, text: str):
+        self.commands.append(AutoTypeInputEntry(input_type=AutoTypeInputType.TEXT, input_to_type=text))
+        return self
+
+    def key_press(self, key: KeyPress):
+        self.commands.append(AutoTypeInputEntry(input_type=AutoTypeInputType.KEY_PRESS, input_to_type=key.value))
+        return self
+
+    def credentials(self, username: str, password: str):
+        self.type(username)
+        self.key_press(KeyPress.TAB)
+        self.type(password)
+        self.key_press(KeyPress.ENTER)
+        return self
+
+    def build(self):
+        built_commands = [f"{self.bin} {self.window_minimize if index == 1000000 else ''} {entry.input_type.value} {entry.input_to_type}"
+                          for index, entry in enumerate(self.commands)]
+        command = " && ".join(built_commands)
+        return RunScriptAction(command)

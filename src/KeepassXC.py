@@ -63,18 +63,11 @@ class KeepassXC:
             line = self.get_output()
             if line is None:
                 break
-            output.append(line)
+            output.append(line.strip())
 
         return output
 
     def interact(self, command: str) -> [str]:
-        # if command.lower() == "search":
-        #     command = "ls"
-        #
-        # output = self.__send_command(command)[1:]
-        # print(output)
-        #
-        # self.read_thread.join()
         output = self.__send_command(command)
 
         if command.lower() == 'exit':
