@@ -2,14 +2,36 @@ import subprocess
 import threading
 import queue
 import os
+import time
+from pathlib import Path
+
+
+class KeepassXcError(Exception):
+    def __init__(self, message: str, description: str):
+        super().__init__()
+        self.message = message
+        self.description = description
+
+
+class DatabaseNotFoundError(KeepassXcError):
+    def __init__(self):
+        super().__init__("Incorrect database file path", "Change the database path in the extensions settings")
+
+
+class IncorrectPasswordError(KeepassXcError):
+    def __init__(self, database_name: str):
+        super().__init__(f"Incorrect password for {database_name}",
+                         "Change the database's password in the extensions settings")
 
 
 class KeepassXC:
-    def __init__(self):
-        database_path = "path"
+    def __init__(self, database_path: Path, password: str):
+        if not database_path.expanduser().is_file():
+            raise DatabaseNotFoundError()
+
         self.keepassxc_process = subprocess.Popen(["keepassxc-cli",
-                                                  "open",
-                                                  database_path],
+                                                   "open",
+                                                   database_path.expanduser().__str__()],
                                                   stdin=subprocess.PIPE,
                                                   stdout=subprocess.PIPE,
                                                   stderr=subprocess.DEVNULL,
@@ -18,7 +40,7 @@ class KeepassXC:
         self.read_thread = threading.Thread(target=self.read_output)
         self.read_thread.start()
         self.__database_name = os.path.basename(database_path).split(".")[0]
-        self.__write_command("password")
+        self.__send_password(password)
 
     def read_output(self):
         while True:
@@ -50,7 +72,7 @@ class KeepassXC:
         self.keepassxc_process.stdin.write(command + "\n")
         self.keepassxc_process.stdin.flush()
 
-    def __send_command(self, command):
+    def __send_command(self, command) -> [str]:
         with self.output_queue.mutex:
             self.output_queue.queue.clear()
             self.output_queue.all_tasks_done.notify_all()
@@ -67,6 +89,13 @@ class KeepassXC:
 
         return output
 
+    def __send_password(self, password: str):
+        self.__send_command(password)
+        time.sleep(1)
+
+        if self.keepassxc_process.poll() is not None:
+            raise IncorrectPasswordError(self.__database_name)
+
     def interact(self, command: str) -> [str]:
         output = self.__send_command(command)
 
@@ -74,7 +103,3 @@ class KeepassXC:
             self.read_thread.join()
 
         return output
-
-# keepass = KeepassXC()
-# time.sleep(3)
-# keepass.interact("search stage")

@@ -16,6 +16,20 @@
       "default_value": "kp"
     },
     {
+      "id": "database_path",
+      "type": "input",
+      "name": "Database path",
+      "description": "Path to the KeepassXC database to use",
+      "default_value": "~/Documents/keepass/database.kdbx"
+    },
+    {
+      "id": "password",
+      "type": "input",
+      "name": "Password",
+      "description": "Password fot the database specified above",
+      "default_value": "very-strong-password"
+    },
+    {
       "id": "item_limit",
       "type": "input",
       "name": "Item limit",
